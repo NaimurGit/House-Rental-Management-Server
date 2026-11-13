@@ -6,6 +6,7 @@ const connectDB = require("./config/db");
 const apartmentRoutes = require("./routes/apartmentRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const spendingRoutes = require("./routes/spendingRoutes");
+const monthlyChargeRoutes = require("./routes/monthlyChargeRoutes");
 
 dotenv.config();
 
@@ -24,6 +25,7 @@ app.get("/", (req, res) => {
 app.use("/api/apartments", apartmentRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/spendings", spendingRoutes);
+app.use("/api/monthly-charges", monthlyChargeRoutes);
 
 // Start server after connecting to MongoDB
 const startServer = async () => {
