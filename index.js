@@ -1,14 +1,18 @@
+
+require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
-const dotenv = require("dotenv");
 
 const connectDB = require("./config/db");
+
 const apartmentRoutes = require("./routes/apartmentRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const spendingRoutes = require("./routes/spendingRoutes");
 const monthlyChargeRoutes = require("./routes/monthlyChargeRoutes");
+const authRoutes = require("./routes/authRoutes");
 
-dotenv.config();
+const authMiddleware = require("./middleware/authMiddleware");
 
 const app = express();
 
@@ -21,11 +25,14 @@ app.get("/", (req, res) => {
   res.send("House Rent Management API is Running");
 });
 
-// Apartment routes
-app.use("/api/apartments", apartmentRoutes);
-app.use("/api/payments", paymentRoutes);
-app.use("/api/spendings", spendingRoutes);
-app.use("/api/monthly-charges", monthlyChargeRoutes);
+// Public authentication route
+app.use("/api/auth", authRoutes);
+
+// Protected application routes
+app.use("/api/apartments", authMiddleware, apartmentRoutes);
+app.use("/api/payments", authMiddleware, paymentRoutes);
+app.use("/api/spendings", authMiddleware, spendingRoutes);
+app.use("/api/monthly-charges", authMiddleware, monthlyChargeRoutes);
 
 // Start server after connecting to MongoDB
 const startServer = async () => {

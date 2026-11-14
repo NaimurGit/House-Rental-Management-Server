@@ -13,31 +13,38 @@ const createSpending = async (req, res) => {
       description,
     } = req.body;
 
-    if (!apartmentId || !amount || !date || !category) {
+    // Validate common required fields
+    if (!amount || !date || !category) {
       return res.status(400).json({
         success: false,
-        message: "Please provide all required fields.",
+        message: "Please provide amount, date and category.",
       });
     }
 
-    if (!mongoose.isValidObjectId(apartmentId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid apartment ID.",
-      });
-    }
+    let apartment = null;
 
-    const apartment = await Apartment.findById(apartmentId);
+    // Apartment is optional.
+    // If an apartment ID is provided, validate it.
+    if (apartmentId) {
+      if (!mongoose.isValidObjectId(apartmentId)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid apartment ID.",
+        });
+      }
 
-    if (!apartment) {
-      return res.status(404).json({
-        success: false,
-        message: "Apartment not found.",
-      });
+      apartment = await Apartment.findById(apartmentId);
+
+      if (!apartment) {
+        return res.status(404).json({
+          success: false,
+          message: "Apartment not found.",
+        });
+      }
     }
 
     const spending = await Spending.create({
-      apartment: apartmentId,
+      apartment: apartmentId || null,
       amount,
       date,
       category,

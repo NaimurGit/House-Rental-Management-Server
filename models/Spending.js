@@ -5,22 +5,27 @@ const spendingSchema = new mongoose.Schema(
     apartment: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Apartment",
-      required: true,
+      required: false,
+      default: null,
     },
+
     amount: {
       type: Number,
       required: true,
       min: 1,
     },
+
     date: {
       type: Date,
       required: true,
     },
+
     category: {
       type: String,
       required: true,
       trim: true,
     },
+
     description: {
       type: String,
       trim: true,
