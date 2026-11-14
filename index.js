@@ -1,4 +1,3 @@
-
 require("dotenv").config();
 
 const express = require("express");
@@ -36,6 +35,21 @@ app.use(
 
 app.use(express.json());
 
+// Ensure a (cached) database connection exists for every request.
+// This is required on serverless platforms like Vercel, where the
+// process is started fresh and never runs app.listen().
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Database connection failed.",
+    });
+  }
+});
+
 // Test route
 app.get("/", (req, res) => {
   res.send("House Rent Management API is Running");
@@ -50,20 +64,36 @@ app.use("/api/payments", authMiddleware, paymentRoutes);
 app.use("/api/spendings", authMiddleware, spendingRoutes);
 app.use("/api/monthly-charges", authMiddleware, monthlyChargeRoutes);
 
-// Start server after connecting to MongoDB
-const startServer = async () => {
-  try {
-    await connectDB();
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ success: false, message: "Route not found." });
+});
 
-    const PORT = process.env.PORT || 5000;
+// Error handler
+app.use((error, req, res, next) => {
+  console.error("Unhandled error:", error.message);
+  res.status(500).json({ success: false, message: "Internal server error." });
+});
 
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
-  } catch (error) {
-    console.error("Server startup failed:", error.message);
-    process.exit(1);
-  }
-};
+// Export the app for serverless platforms (Vercel)
+module.exports = app;
 
-startServer();
+// Only start a listener when running the server directly (local dev)
+if (require.main === module) {
+  const startServer = async () => {
+    try {
+      await connectDB();
+
+      const PORT = process.env.PORT || 5000;
+
+      app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+      });
+    } catch (error) {
+      console.error("Server startup failed:", error.message);
+      process.exit(1);
+    }
+  };
+
+  startServer();
+}
