@@ -16,10 +16,14 @@ const authMiddleware = require("./middleware/authMiddleware");
 const app = express();
 
 // CORS configuration
+// CLIENT_URL supports a comma-separated list of allowed origins.
 const allowedOrigins = [
   "http://localhost:5173",
-  process.env.CLIENT_URL,
-].filter(Boolean);
+  ...(process.env.CLIENT_URL || "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean),
+];
 
 app.use(
   cors({
